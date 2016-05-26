@@ -1,7 +1,7 @@
 /**
  * Created by Prin'Meshia.
  * github ; https://github.com/PrinMeshia/owljs
- * Version : 0.0.2
+ * Version : 0.0.3
  * created : May 2016
  * Updated : May 2016
  *
