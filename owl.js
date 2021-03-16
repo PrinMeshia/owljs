@@ -1,204 +1,193 @@
-/**
- * Created by Prin'Meshia.
- * github ; https://github.com/PrinMeshia/owljs
- * Version : 0.0.3
- * created : May 2016
- * Updated : May 2016
- *
- */
-(function (window) {
-    var owl = function (elem) {
-        return new Owljs(elem);
-    };
-    var Owljs = function (elem) {
-        this.e = document.querySelectorAll(elem);
-        this.elength = this.e.length;
-        var version = '0.0.2';
-        var github = 'https://github.com/PrinMeshia/owljs';
-        this.fadeStart = false;
-        /*ANIMATE*/
-        this.animation = {
-            linear: function (progress) {
-                return progress;
-            }
+"use strict";
+const _ = (() => {
+  class Owl {
+    constructor(selector) {
+      if (selector) {
+        if (selector === "document") {
+          this.elems = [document];
+        } else if (selector === "window") {
+          this.elems = [window];
+        } else {
+          this.elems = document.querySelectorAll(selector);
         }
-        return this;
-    };
-    Owljs.prototype = {
-        val: function (newval) {
-            for (var i = 0; i < this.elength; i++) {
-                this.e[i].value = newval;
-            }
-            return this;
-        },
-        css: function (css, val) {
-            for (var i = 0; i < this.elength; i++) {
-                this.e[i].style[css] = val;
-            }
-            return this;
-        },
-
-        /*
-         * SHOW - HIDE - TOGGLZ
-         */
-        hide: function () {
-            for (var i = 0; i < this.elength; i++) {
-                this.e[i].style.display = 'none';
-            }
-            return this;
-        },
-        show: function () {
-            for (var i = 0; i < this.elength; i++) {
-                this.e[i].style.display = 'inherit';
-            }
-            return this;
-        },
-        toggle: function () {
-            for (var i = 0; i < this.elength; i++) {
-                if (this.e[i].style.display !== 'none') {
-                    this.e[i].style.display = 'none';
-                } else {
-                    this.e[i].style.display = 'inherit';
-                }
-            }
-            return this;
-        },
-        /*
-         * CLASS ACTION
-         */
-        hasClass: function (el, className) {
-            if (el.classList)
-                return el.classList.contains(className);
-            else
-                return !!el.className.match(new RegExp('(\\s|^)' + className + '(\\s|$)'));
-        },
-        addClass: function (className) {
-            for (var i = 0; i < this.elength; i++) {
-                if (this.e[i].classList)
-                    this.e[i].classList.add(className);
-                else if (!this.hasClass(this.e[i], className))
-                    this.e[i].className += " " + className;
-            }
-            return this;
-        },
-        removeClass: function (className) {
-            for (var i = 0; i < this.elength; i++) {
-                if (this.e[i].classList)
-                    this.e[i].classList.remove(className);
-                else if (this.hasClass(this.e[i], className)) {
-                    var reg = new RegExp('(\\s|^)' + className + '(\\s|$)');
-                    this.e[i].className = this.e[i].className.replace(reg, ' ');
-                }
-            }
-            return this;
-        },
-        toggleClass: function (className) {
-            for (var i = 0; i < this.elength; i++) {
-                if (this.hasClass(this.e[i], className)) {
-                    this.e[i].classList.remove(className);
-                } else {
-                    this.e[i].classList.add(className);
-                }
-            }
-            return this;
-        },
-
-        /**
-         * ANIMATE
-         * params :
-         *          - t : duration
-         *          - d : dif
-         *          - c : complete function
-         *          - s : step
-         **/
-        animate: function (params) {
-            var dateS = new Date;
-            var animeInt = setInterval(function () {
-                var timeInt = new Date - dateS;
-                var progress = timeInt / params.t;
-                if (progress > 1) {
-                    progress = 1;
-                }
-                params.progress = progress;
-                var delta = params.d(progress);
-                params.s(delta);
-                if (progress == 1) {
-                    clearInterval(animeInt);
-                    params.c();
-                }
-            }, params.delay || 10);
-            return this;
-        },
-        fadeIn: function (params) {
-            if (!fadeStart) {
-                this.fadeStart = true;
-
-                var to = 0;
-                var _this = this;
-                this.animate({
-                    t: params.t,
-                    d: function (progress) {
-                        progress = this.progress;
-                        return _this.animation.linear(progress);
-                    },
-                    c: function () {
-                        for (var i = 0; i < _this.elength; i++) {
-                            _this.e[i].style.opacity = '';
-                        }
-                        _this.fadeStart = false;
-                    },
-                    s: function (delta) {
-                        for (var i = 0; i < _this.elength; i++) {
-                            if (_this.e[i].offsetWidth <= 0 || _this.e[i].offsetHeight <= 0) {
-                                _this.e[i].style.opacity = to + delta;
-                                _this.e[i].style.display = 'inherit';
-                            }
-                        }
-                    }
-                });
-            }
-
-            return this;
-        },
-        fadeOut: function (params) {
-            if (!fadeStart) {
-                this.fadeStart = true;
-                var to = 1;
-                var _this = this;
-                this.animate({
-                    t: params.t,
-                    d: function (progress) {
-                        progress = this.progress;
-                        return _this.animation.linear(progress);
-                    },
-                    c: function () {
-                        for (var i = 0; i < _this.elength; i++) {
-                            _this.e[i].style.display = 'none';
-                            _this.e[i].style.opacity = '';
-
-                        }
-                        _this.fadeStart = false;
-                    },
-                    s: function (delta) {
-                        for (var i = 0; i < _this.elength; i++) {
-                            if (_this.e[i].offsetWidth > 0 || _this.e[i].offsetHeight > 0)
-                                _this.e[i].style.opacity = to - delta;
-                        }
-                    }
-                });
-            }
-            return this;
-        }
-    };
-    if (!window.owl) {
-        window.owl = owl;
+      }
     }
-    if (!window.requestAnimationFrame) {
-        window.requestAnimationFrame = function (fn) {
-            var timer = 16.66; // 60 fps
-            setTimeout(fn, timer);
+    /**
+     *
+     * @param {*} callback
+     * @returns
+     */
+    ready(callback) {
+      if (!callback || typeof callback !== "function") return;
+      this.each((item) => {
+        item.addEventListener("DOMContentLoaded", callback);
+        if (
+          item.readyState === "interactive" ||
+          item.readyState === "complete"
+        ) {
+          callback();
         }
+      });
     }
-})(window);
+    createElement(arg) {
+      this.elem = [document.createElement(arg)];
+      return this;
+    }
+    each(callback) {
+      if (!callback || typeof callback !== "function") return;
+      for (let i = 0; i < this.elems.length; i++) {
+        callback(this.elems[i], i);
+      }
+      return this;
+    }
+    val(newval) {
+      this.each((item) => {
+        item.value = newval;
+      });
+      return this;
+    }
+    css(attr, value) {
+      this.each((item) => {
+        item.style[attr] = value;
+      });
+      return this;
+    }
+    html(htmlContent = null) {
+      let data = [];
+      this.each((item) => {
+        if (htmlContent === null) {
+          data.push(item.innerHtml);
+        } else {
+          item.innerHtml = htmlContent;
+        }
+      });
+      if (data.length === 0) return this;
+      else return data;
+    }
+    //Todo : add find function
+    // find(attr){
+    //   this.elems = container.querySelectorAll(attr);
+    //   return this
+    // }
+    on(event, callback) {
+      if (!callback || typeof callback !== "function") return;
+      this.each((item) => {
+        item.addEventListener(event, callback);
+      });
+      return this;
+    }
+    click(callback) {
+      if (!callback || typeof callback !== "function") return;
+      this.each((item) => {
+        item.addEventListener("click", callback);
+      });
+      return this;
+    }
+    addClass(className) {
+      this.each((item) => {
+        item.classList.add(className);
+      });
+      return this;
+    }
+    removeClass(className) {
+      this.each((item) => {
+        item.classList.remove(className);
+      });
+      return this;
+    }
+    toggleClass(className) {
+      this.each((item) => {
+        item.classList.toggle(className);
+      });
+      return this;
+    }
+    hasClass(className) {
+      this.each((item) => {
+        item.classList.toggle(className);
+      });
+      return this;
+    }
 
-
+    _parseResult(dataType, data) {
+      switch (dataType) {
+        case "json":
+          return data.json();
+        default:
+          return data.text();
+      }
+    }
+    ajax(...args) {
+      let { method, url, data, dataType, ContentType } = args[0];
+      let options = {
+        method: method ?? "GET",
+      };
+      data ? (options.data = data) : null;
+      dataType ? (options.dataType = dataType) : null;
+      ContentType ? (options.ContentType = ContentType) : null;
+      return new Promise((resolve, reject) => {
+        fetch(url, options)
+          .then((response) => {
+            resolve(this._parseResult(dataType, response));
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    }
+    getJSON(url) {
+      return this.ajax({
+        method: "GEt",
+        url: url,
+        dataType: "json",
+        ContentType: "application/json",
+      });
+    }
+    hide() {
+      this.each((item) => {
+        item.style.display = "none";
+      });
+      return this;
+    }
+    show(display) {
+      this.each((item) => {
+        item.style.display = display || "block";
+      });
+      return this;
+    }
+    fadeOut() {
+      this.each((item) => {
+        item.style.opacity = 1;
+        (function fade() {
+          if ((item.style.opacity -= 0.1) < 0) {
+            item.style.display = "none";
+          } else {
+            requestAnimationFrame(fade);
+          }
+        })();
+      });
+      return this;
+    }
+    fadeIn(display) {
+      this.each((item) => {
+        item.style.opacity = 0;
+        item.style.display = display || "block";
+        (function fade() {
+          var val = parseFloat(item.style.opacity);
+          if (!((val += 0.1) > 1)) {
+            item.style.opacity = val;
+            requestAnimationFrame(fade);
+          }
+        })();
+      });
+      return this;
+    }
+  }
+  /**
+   * Instantiate a new constructor
+   */
+  let instantiate = (selector) => new Owl(selector);
+  /**
+   * Return the constructor instantiation
+   */
+  return instantiate;
+})();
