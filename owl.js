@@ -7,6 +7,8 @@ const _ = (() => {
           this.elems = [document];
         } else if (selector === "window") {
           this.elems = [window];
+        } else if (typeof selector === "object") {
+          this.elems = selector;
         } else {
           this.elems = document.querySelectorAll(selector);
         }
@@ -56,24 +58,27 @@ const _ = (() => {
       let data = [];
       this.each((item) => {
         if (htmlContent === null) {
-          data.push(item.innerHtml);
+          data.push(item.innerHTML);
         } else {
-          item.innerHtml = htmlContent;
+          item.innerHTML = htmlContent;
         }
       });
       if (data.length === 0) return this;
       else return data;
     }
     //Todo : add find function
-    // find(attr){
-    //   this.elems = container.querySelectorAll(attr);
-    //   return this
-    // }
     on(event, callback) {
       if (!callback || typeof callback !== "function") return;
       this.each((item) => {
         item.addEventListener(event, callback);
       });
+      return this;
+    }
+    find(selector) {
+      if (!selector) return;
+      if (Array.isArray(this.elems))
+        this.elems = this.elems[0].querySelectorAll(selector);
+      else this.elems = this.elems.querySelectorAll(selector);
       return this;
     }
     click(callback) {
@@ -108,31 +113,57 @@ const _ = (() => {
       return this;
     }
 
-    _parseResult(dataType, data) {
-      switch (dataType) {
-        case "json":
-          return data.json();
-        default:
-          return data.text();
-      }
-    }
     ajax(...args) {
       let { method, url, data, dataType, ContentType } = args[0];
+      if (!method){
+        method = 'GET';
+      }
       let options = {
-        method: method ?? "GET",
+        method: method,
+        headers: new Headers(),
       };
       data ? (options.data = data) : null;
       dataType ? (options.dataType = dataType) : null;
       ContentType ? (options.ContentType = ContentType) : null;
-      return new Promise((resolve, reject) => {
-        fetch(url, options)
-          .then((response) => {
-            resolve(this._parseResult(dataType, response));
-          })
-          .catch((err) => {
-            reject(err);
-          });
-      });
+      let request = new Request(url, options);
+      return fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const contentType = response.headers.get("Content-Type") || "";
+            if (contentType.includes("application/json")) {
+              return response.json().catch((error) => {
+                return Promise.reject(
+                  new ResponseError("Invalid JSON: " + error.message)
+                );
+              });
+            }
+            if (contentType.includes("text/html")) {
+              return response
+                .text()
+                .then((html) => {
+                  return {
+                    page_type: "generic",
+                    html: html,
+                  };
+                })
+                .catch((error) => {
+                  return Promise.reject(
+                    new ResponseError("HTML error: " + error.message)
+                  );
+                });
+            }
+            return Promise.reject(
+              new ResponseError("Invalid content type: " + contentType)
+            );
+          }
+          if (response.status == 404) {
+            return Promise.reject(new NotFoundError("Page not found: " + url));
+          }
+          return Promise.reject(new HttpError('HTTP error: ' + response.status));
+        })
+        .catch((err) => {
+          return Promise.reject(new NetworkError(err.message));
+        });
     }
     getJSON(url) {
       return this.ajax({
